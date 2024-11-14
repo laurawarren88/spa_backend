@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"encoding/base64"
+	"io"
+	"log"
 	"net/http"
 	"spa_media_review/models"
 	"time"
@@ -63,31 +65,86 @@ func (bc *BookController) GetBookByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, book)
 }
 
-func (bc *BookController) CreateBook(ctx *gin.Context) {
-	fmt.Println("Received create book request")
-	var book models.Book
-	if err := ctx.ShouldBindJSON(&book); err != nil {
-		fmt.Println("Binding error:", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// func (bc *BookController) CreateBook(ctx *gin.Context) {
+// 	fmt.Println("Received create book request")
+// 	var book models.Book
+// 	if err := ctx.ShouldBindJSON(&book); err != nil {
+// 		fmt.Println("Binding error:", err)
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	book.ID = primitive.NewObjectID()
+// 	book.CreatedAt = time.Now()
+// 	book.UpdatedAt = time.Now()
+
+// 	if errors := book.Validate(); len(errors) > 0 {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errors})
+// 		return
+// 	}
+
+// 	_, err := bc.bookCollection.InsertOne(context.TODO(), book)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusCreated, book)
+// }
+
+func (bc *BookController) CreateBookWithImage(c *gin.Context) {
+	// Set a reasonable max size for the multipart form
+	maxSize := int64(10 << 20) // 10MB
+	c.Request.ParseMultipartForm(maxSize)
+
+	// Get form values
+	book := models.Book{
+		ID:          primitive.NewObjectID(),
+		Title:       c.PostForm("title"),
+		Author:      c.PostForm("author"),
+		Category:    c.PostForm("category"),
+		Description: c.PostForm("description"),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	// Handle image file
+	file, err := c.FormFile("image")
+	if err == nil {
+		openFile, err := file.Open()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open image file"})
+			return
+		}
+		defer openFile.Close()
+
+		// Read and encode file contents
+		fileBytes, err := io.ReadAll(openFile)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image file"})
+			return
+		}
+		// Encode to Base64
+		book.Image = base64.StdEncoding.EncodeToString(fileBytes)
+	} else if err != http.ErrMissingFile {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get image file"})
 		return
 	}
 
-	book.ID = primitive.NewObjectID()
-	book.CreatedAt = time.Now()
-	book.UpdatedAt = time.Now()
-
+	// Validate and save
 	if errors := book.Validate(); len(errors) > 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errors})
+		c.JSON(http.StatusBadRequest, gin.H{"errors": errors})
 		return
 	}
 
-	_, err := bc.bookCollection.InsertOne(context.TODO(), book)
+	_, err = bc.bookCollection.InsertOne(context.TODO(), book)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
+		log.Println("Failed to create book:", err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, book)
+	c.JSON(http.StatusCreated, gin.H{"book": book})
 }
 
 func (bc *BookController) UpdateBook(ctx *gin.Context) {

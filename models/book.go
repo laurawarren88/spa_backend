@@ -12,7 +12,7 @@ type Book struct {
 	Author      string             `json:"author" bson:"author"`
 	Category    string             `json:"category" bson:"category"`
 	Description string             `json:"description" bson:"description"`
-	Image       string             `json:"image" bson:"image"`
+	Image       string             `json:"image" bson:"image,omitempty"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 }
@@ -34,9 +34,9 @@ func (b *Book) Validate() map[string]string {
 		errors["description"] = "Description is required"
 	}
 
-	if b.Image == "" {
-		errors["image"] = "Image is required"
-	}
+	// if b.Image == "" {
+	// 	errors["image"] = "Image is required"
+	// }
 
 	return errors
 }
