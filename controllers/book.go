@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"spa_media_review/models"
 	"time"
@@ -20,40 +21,6 @@ type BookController struct {
 func NewBookController(collection *mongo.Collection) *BookController {
 	return &BookController{bookCollection: collection}
 }
-
-// func (bc *BookController) GetBooks(ctx *gin.Context) {
-// 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-// 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
-// 	sortBy := ctx.DefaultQuery("sort", "title")
-// 	order := ctx.DefaultQuery("order", "asc")
-
-// 	skip := (page - 1) * limit
-
-// 	opts := options.Find().
-// 		SetSort(bson.D{{Key: sortBy, Value: getSortOrder(order)}}).
-// 		SetSkip(int64(skip)).
-// 		SetLimit(int64(limit))
-
-// 	cursor, err := bc.bookCollection.Find(context.TODO(), bson.D{}, opts)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve books"})
-// 		return
-// 	}
-// 	defer cursor.Close(context.TODO())
-
-// 	var books []models.Book
-// 	if err = cursor.All(context.TODO(), &books); err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode books"})
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, gin.H{
-// 		"books": books,
-// 		"page":  page,
-// 		"limit": limit,
-// 		"total": len(books),
-// 	})
-// }
 
 func (bc *BookController) GetBooks(c *gin.Context) {
 	cursor, err := bc.bookCollection.Find(context.TODO(), bson.D{})
@@ -97,8 +64,10 @@ func (bc *BookController) GetBookByID(ctx *gin.Context) {
 }
 
 func (bc *BookController) CreateBook(ctx *gin.Context) {
+	fmt.Println("Received create book request")
 	var book models.Book
 	if err := ctx.ShouldBindJSON(&book); err != nil {
+		fmt.Println("Binding error:", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -122,7 +91,20 @@ func (bc *BookController) CreateBook(ctx *gin.Context) {
 }
 
 func (bc *BookController) UpdateBook(ctx *gin.Context) {
-	ctx.JSON(http.StatusCreated, gin.H{"message": "Book updated successfully"})
+	id := ctx.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	var book models.Book
+	if err := bc.bookCollection.FindOne(context.TODO(), bson.M{"_id": objectId}).Decode(&book); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, book)
 }
 
 func (bc *BookController) EditedBook(ctx *gin.Context) {
@@ -210,11 +192,4 @@ func (bc *BookController) SearchBooks(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"books": books})
-}
-
-func getSortOrder(order string) int {
-	if order == "desc" {
-		return -1
-	}
-	return 1
 }
