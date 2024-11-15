@@ -10,10 +10,9 @@ func RegisterReviewRoutes(router *gin.Engine, rc *controllers.ReviewController) 
 
 	reviewRoutes := router.Group("/api/reviews")
 	{
-		reviewRoutes.GET("/", rc.GetReviews)
-		reviewRoutes.POST("/new", rc.CreateReview)
-		// reviewRoutes.GET("/new", rc.NewReview)
-		reviewRoutes.GET("book/:book_id", rc.NewReview)
-		reviewRoutes.GET("/:id", rc.GetReviewByBookID)
+		reviewRoutes.GET("/", rc.GetReviews)                     // Fetch All Reviews
+		reviewRoutes.POST("/", rc.CreateReview)                  // Create a new Review
+		reviewRoutes.GET("/book/:bookId", rc.GetReviewsByBookID) // Fetch Reviews by Book ID
+		reviewRoutes.GET("/:id", rc.GetReviewByID)               // Fetch a single Review
 	}
 }
