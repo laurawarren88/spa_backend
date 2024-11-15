@@ -24,21 +24,28 @@ func NewBookController(collection *mongo.Collection) *BookController {
 	return &BookController{bookCollection: collection}
 }
 
-func (bc *BookController) GetBooks(c *gin.Context) {
-	cursor, err := bc.bookCollection.Find(context.TODO(), bson.D{})
+func (bc *BookController) GetBooks(ctx *gin.Context) {
+	query := ctx.Query("q")
+	filter := bson.M{
+		"$or": []bson.M{
+			{"title": bson.M{"$regex": query, "$options": "i"}},
+		},
+	}
+
+	cursor, err := bc.bookCollection.Find(context.TODO(), filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer cursor.Close(context.TODO())
 
 	var books []models.Book
 	if err := cursor.All(context.TODO(), &books); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode books"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode books"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"books": books,
 	})
 }
@@ -65,62 +72,62 @@ func (bc *BookController) GetBookByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, book)
 }
 
-func (bc *BookController) CreateBook(c *gin.Context) {
+func (bc *BookController) CreateBook(ctx *gin.Context) {
 	maxSize := int64(20 << 20)
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxSize)
+	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, maxSize)
 
-	if err := c.Request.ParseMultipartForm(maxSize); err != nil {
+	if err := ctx.Request.ParseMultipartForm(maxSize); err != nil {
 		if err.Error() == "http: request body too large" {
-			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "File size exceeds 10MB limit"})
+			ctx.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "File size exceeds 10MB limit"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
 		return
 	}
 
 	book := models.Book{
 		ID:          primitive.NewObjectID(),
-		Title:       c.PostForm("title"),
-		Author:      c.PostForm("author"),
-		Category:    c.PostForm("category"),
-		Description: c.PostForm("description"),
+		Title:       ctx.PostForm("title"),
+		Author:      ctx.PostForm("author"),
+		Category:    ctx.PostForm("category"),
+		Description: ctx.PostForm("description"),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 
-	file, err := c.FormFile("image")
+	file, err := ctx.FormFile("image")
 	if err == nil {
 		openFile, err := file.Open()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open image file"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open image file"})
 			return
 		}
 		defer openFile.Close()
 
 		fileBytes, err := io.ReadAll(openFile)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image file"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read image file"})
 			return
 		}
 		book.Image = base64.StdEncoding.EncodeToString(fileBytes)
 	} else if err != http.ErrMissingFile {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get image file"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get image file"})
 		return
 	}
 
 	if errors := book.Validate(); len(errors) > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errors": errors})
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": errors})
 		return
 	}
 
 	_, err = bc.bookCollection.InsertOne(context.TODO(), book)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book"})
 		log.Println("Failed to create book:", err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"book": book})
+	ctx.JSON(http.StatusCreated, gin.H{"book": book})
 }
 
 func (bc *BookController) UpdateBook(ctx *gin.Context) {
