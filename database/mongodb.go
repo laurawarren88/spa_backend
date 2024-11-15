@@ -14,6 +14,7 @@ import (
 var MongoClient *mongo.Client
 var DB *mongo.Database
 var BookCollection *mongo.Collection
+var ReviewCollection *mongo.Collection
 
 func Connect_to_mongodb() error {
 
@@ -32,6 +33,7 @@ func Connect_to_mongodb() error {
 	MongoClient = client
 	DB = client.Database("media_review_app")
 	BookCollection = DB.Collection("books")
+	ReviewCollection = DB.Collection("reviews")
 
 	fmt.Println("Connected to MongoDB.")
 	return nil

@@ -27,10 +27,12 @@ func SetupServer() *gin.Engine {
 	return router
 }
 
-func SetupHandlers(router *gin.Engine, bookCollection *mongo.Collection) {
-	bookController := controllers.NewBookController(bookCollection)
+func SetupHandlers(router *gin.Engine, bookCollection *mongo.Collection, reviewCollection *mongo.Collection) {
 	homeController := controllers.NewHomeController(bookCollection)
+	bookController := controllers.NewBookController(bookCollection)
+	reviewController := controllers.NewReviewController(reviewCollection)
 
-	routes.RegisterBookRoutes(router, bookController)
 	routes.RegisterHomeRoute(router, homeController)
+	routes.RegisterBookRoutes(router, bookController)
+	routes.RegisterReviewRoutes(router, reviewController)
 }
