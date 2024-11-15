@@ -34,9 +34,9 @@ func (b *Book) Validate() map[string]string {
 		errors["description"] = "Description is required"
 	}
 
-	// if b.Image == "" {
-	// 	errors["image"] = "Image is required"
-	// }
+	if b.Image == "" {
+		errors["image"] = "Image is required"
+	}
 
 	return errors
 }
