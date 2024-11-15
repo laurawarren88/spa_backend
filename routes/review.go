@@ -11,9 +11,9 @@ func RegisterReviewRoutes(router *gin.Engine, rc *controllers.ReviewController) 
 	reviewRoutes := router.Group("/api/reviews")
 	{
 		reviewRoutes.GET("/", rc.GetReviews)
-		reviewRoutes.POST("/", rc.CreateReview)
+		reviewRoutes.POST("/new", rc.CreateReview)
 		// reviewRoutes.GET("/new", rc.NewReview)
 		reviewRoutes.GET("book/:book_id", rc.NewReview)
-		reviewRoutes.GET("/:id", rc.GetReviewByID)
+		reviewRoutes.GET("/:id", rc.GetReviewByBookID)
 	}
 }
