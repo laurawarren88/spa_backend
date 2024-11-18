@@ -30,7 +30,7 @@ func SetupServer() *gin.Engine {
 func SetupHandlers(router *gin.Engine, bookCollection *mongo.Collection, reviewCollection *mongo.Collection) {
 	homeController := controllers.NewHomeController(bookCollection)
 	bookController := controllers.NewBookController(bookCollection)
-	reviewController := controllers.NewReviewController(reviewCollection)
+	reviewController := controllers.NewReviewController(reviewCollection, bookCollection)
 
 	routes.RegisterHomeRoute(router, homeController)
 	routes.RegisterBookRoutes(router, bookController)
