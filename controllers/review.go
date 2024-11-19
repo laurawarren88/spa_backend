@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ReviewController struct {
@@ -177,4 +178,80 @@ func (rc *ReviewController) GetReviewByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, review)
+}
+
+func (rc *ReviewController) UpdateReview(ctx *gin.Context) {
+	id := ctx.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	var review models.Review
+	if err := rc.reviewCollection.FindOne(context.TODO(), bson.M{"_id": objectId}).Decode(&review); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, review)
+}
+
+func (rc *ReviewController) EditedReview(ctx *gin.Context) {
+	id := ctx.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	var updateReview models.Review
+	if err := ctx.ShouldBindJSON(&updateReview); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"rating":     updateReview.Rating,
+			"review":     updateReview.Review,
+			"updated_at": time.Now(),
+		},
+	}
+
+	result := rc.reviewCollection.FindOneAndUpdate(
+		context.TODO(),
+		bson.M{"_id": objectId},
+		update,
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
+	)
+
+	if result.Err() != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "review not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Review updated successfully"})
+}
+
+func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
+	id := ctx.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
 }
