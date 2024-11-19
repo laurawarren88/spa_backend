@@ -23,7 +23,7 @@ func main() {
 
 	router := config.SetupServer()
 
-	config.SetupHandlers(router, database.BookCollection, database.ReviewCollection)
+	config.SetupHandlers(router, database.BookCollection, database.ReviewCollection, database.UserCollection)
 
 	fmt.Printf("Starting the server\n")
 	if err := router.Run(":8080"); err != nil {

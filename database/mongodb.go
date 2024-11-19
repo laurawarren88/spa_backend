@@ -15,6 +15,7 @@ var MongoClient *mongo.Client
 var DB *mongo.Database
 var BookCollection *mongo.Collection
 var ReviewCollection *mongo.Collection
+var UserCollection *mongo.Collection
 
 func Connect_to_mongodb() error {
 
@@ -34,6 +35,7 @@ func Connect_to_mongodb() error {
 	DB = client.Database("media_review_app")
 	BookCollection = DB.Collection("books")
 	ReviewCollection = DB.Collection("reviews")
+	UserCollection = DB.Collection("users")
 
 	fmt.Println("Connected to MongoDB.")
 	return nil
