@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -148,6 +149,14 @@ func (bc *BookController) UpdateBook(ctx *gin.Context) {
 }
 
 func (bc *BookController) EditedBook(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
+		return
+	}
+
+	fmt.Printf("Authenticated user ID: %v\n", userID)
+
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

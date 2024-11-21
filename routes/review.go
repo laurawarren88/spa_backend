@@ -2,6 +2,7 @@ package routes
 
 import (
 	"spa_media_review/controllers"
+	"spa_media_review/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,13 +11,18 @@ func RegisterReviewRoutes(router *gin.Engine, rc *controllers.ReviewController) 
 
 	reviewRoutes := router.Group("/api/reviews")
 	{
-		reviewRoutes.GET("/", rc.GetReviews) // Fetch All Reviews
-		reviewRoutes.POST("/", rc.CreateReview)
-		reviewRoutes.GET("/new/:bookId", rc.NewReview)           // Create a new Review
-		reviewRoutes.GET("/book/:bookId", rc.GetReviewsByBookID) // Fetch Reviews by Book ID
-		reviewRoutes.GET("/edit/:id", rc.UpdateReview)           // Update a Review
-		reviewRoutes.PUT("/edit/:id", rc.EditedReview)           // Update a Review
-		reviewRoutes.DELETE("/delete/:id", rc.DeleteReview)      // Delete a Review
-		reviewRoutes.GET("/:id", rc.GetReviewByID)               // Fetch a single Review
+		reviewRoutes.GET("/", rc.GetReviews)
+		reviewRoutes.GET("/book/:bookId", rc.GetReviewsByBookID)
+		reviewRoutes.GET("/:id", rc.GetReviewByID)
+	}
+
+	protected := router.Group("/api/reviews")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		protected.POST("/", rc.CreateReview)
+		protected.GET("/new/:bookId", rc.NewReview)
+		protected.GET("/edit/:id", rc.UpdateReview)
+		protected.PUT("/edit/:id", rc.EditedReview)
+		protected.DELETE("/delete/:id", rc.DeleteReview)
 	}
 }

@@ -23,12 +23,14 @@ func SetGinMode() {
 
 func SetupServer() *gin.Engine {
 	router := gin.Default()
+
 	router.Use(middleware.CORSMiddleware())
+
 	return router
 }
 
 func SetupHandlers(router *gin.Engine, bookCollection *mongo.Collection, reviewCollection *mongo.Collection, userCollection *mongo.Collection) {
-	homeController := controllers.NewHomeController(bookCollection)
+	homeController := controllers.NewHomeController(bookCollection, userCollection)
 	bookController := controllers.NewBookController(bookCollection)
 	reviewController := controllers.NewReviewController(reviewCollection, bookCollection)
 	userController := controllers.NewUserController(userCollection)

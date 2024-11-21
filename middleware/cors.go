@@ -11,6 +11,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
+			"http://localhost:8080",
 		},
 		AllowMethods: []string{
 			"GET",
