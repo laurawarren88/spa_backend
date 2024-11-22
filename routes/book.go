@@ -16,13 +16,13 @@ func RegisterBookRoutes(router *gin.Engine, bc *controllers.BookController) {
 		bookRoutes.GET("/:id", bc.GetBookByID)
 	}
 
-	protected := router.Group("/api/books")
-	protected.Use(middleware.AuthMiddleware())
+	adminRoutes := router.Group("/api/books")
+	adminRoutes.Use(middleware.AuthMiddleware(), middleware.RequireAdmin())
 	{
-		protected.POST("/", bc.CreateBook)
-		protected.GET("/new", bc.NewBook)
-		protected.GET("/edit/:id", bc.UpdateBook)
-		protected.PUT("/edit/:id", bc.EditedBook)
-		protected.DELETE("/delete/:id", bc.DeleteBook)
+		adminRoutes.POST("/", bc.CreateBook)
+		adminRoutes.GET("/new", bc.NewBook)
+		adminRoutes.GET("/edit/:id", bc.UpdateBook)
+		adminRoutes.PUT("/edit/:id", bc.EditedBook)
+		adminRoutes.DELETE("/delete/:id", bc.DeleteBook)
 	}
 }

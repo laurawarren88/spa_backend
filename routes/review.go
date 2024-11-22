@@ -21,8 +21,13 @@ func RegisterReviewRoutes(router *gin.Engine, rc *controllers.ReviewController) 
 	{
 		protected.POST("/", rc.CreateReview)
 		protected.GET("/new/:bookId", rc.NewReview)
-		protected.GET("/edit/:id", rc.UpdateReview)
-		protected.PUT("/edit/:id", rc.EditedReview)
-		protected.DELETE("/delete/:id", rc.DeleteReview)
+	}
+
+	adminRoutes := router.Group("/api/reviews")
+	adminRoutes.Use(middleware.AuthMiddleware(), middleware.RequireAdmin())
+	{
+		adminRoutes.GET("/edit/:id", rc.UpdateReview)
+		adminRoutes.PUT("/edit/:id", rc.EditedReview)
+		adminRoutes.DELETE("/delete/:id", rc.DeleteReview)
 	}
 }

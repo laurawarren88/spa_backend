@@ -2,11 +2,9 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -14,17 +12,11 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		log.Println("AuthMiddleware invoked")
+		// log.Println("AuthMiddleware invoked")
+
 		tokenString, err := ctx.Cookie("token")
 		if err != nil || tokenString == "" {
-			tokenString = ctx.GetHeader("Authorization")
-			if tokenString == "" {
-				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is missing"})
-				ctx.Abort()
-				return
-			}
-
-			tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+			tokenString = strings.TrimPrefix(ctx.GetHeader("Authorization"), "Bearer ")
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -41,12 +33,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if float64(time.Now().Unix()) > claims["exp"].(float64) {
-				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
-				ctx.Abort()
-				return
-			}
-
 			userID, ok := claims["sub"].(string)
 			if !ok || userID == "" {
 				ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user claims"})
@@ -54,7 +40,9 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
+			isAdmin := claims["isAdmin"].(bool)
 			ctx.Set("userID", userID)
+			ctx.Set("isAdmin", isAdmin)
 
 			// ** Uncomment for Debugging **
 			// fmt.Printf("Token parsed: %v\n", claims)

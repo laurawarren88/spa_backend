@@ -16,6 +16,7 @@ type User struct {
 	Username  string             `json:"username" bson:"username" binding:"required"`
 	Email     string             `json:"email" bson:"email" binding:"required"`
 	Password  string             `json:"password" bson:"password" binding:"required"`
+	IsAdmin   bool               `json:"is_admin" bson:"is_admin"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }

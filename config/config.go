@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func LoadEnvVariables() {
+func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -23,9 +23,7 @@ func SetGinMode() {
 
 func SetupServer() *gin.Engine {
 	router := gin.Default()
-
 	router.Use(middleware.CORSMiddleware())
-
 	return router
 }
 

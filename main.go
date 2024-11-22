@@ -9,10 +9,14 @@ import (
 )
 
 func init() {
-	config.LoadEnvVariables()
+	config.LoadEnv()
 
 	if err := database.Connect_to_mongodb(); err != nil {
 		log.Fatal("Could not connect to MongoDB:", err)
+	}
+
+	if err := database.SetupAdminUser(database.DB); err != nil {
+		log.Printf("Admin user setup: %v", err)
 	}
 
 	config.SetGinMode()
