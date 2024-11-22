@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"spa_media_review/models"
@@ -159,6 +160,8 @@ func (uc *UserController) ResetPassword(ctx *gin.Context) {
 }
 
 func (uc *UserController) LogoutUser(ctx *gin.Context) {
+	log.Println("LogoutUser endpoint hit")
+
 	ctx.SetCookie(
 		"token",     // Name of the token cookie
 		"",          // Empty the value

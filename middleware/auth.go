@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		log.Println("AuthMiddleware invoked")
 		tokenString, err := ctx.Cookie("token")
 		if err != nil || tokenString == "" {
 			tokenString = ctx.GetHeader("Authorization")

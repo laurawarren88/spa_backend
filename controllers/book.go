@@ -199,9 +199,12 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		log.Printf("Invalid ID format: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 		return
 	}
+
+	log.Printf("Received ID: %s", id)
 
 	result, err := bc.bookCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
@@ -209,6 +212,7 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 		return
 	}
 
+	log.Printf("Delete result: %+v", result)
 	if result.DeletedCount == 0 {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
