@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"spa_media_review/models"
@@ -234,7 +235,8 @@ func (rc *ReviewController) EditedReview(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review updated successfully"})
 }
 
-func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
+func (rc *ReviewController) DeleteReviewConfirmation(ctx *gin.Context) {
+	fmt.Printf("Received DELETE confirmation request for ID: %s\n", ctx.Param("id"))
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -242,16 +244,45 @@ func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
 		return
 	}
 
+	var review models.Review
+	if err := rc.reviewCollection.FindOne(context.TODO(), bson.M{"_id": objectId}).Decode(&review); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
+		return
+	}
+
+	authHeader := ctx.GetHeader("Authorization")
+	fmt.Printf("Authorization Header: %s\n", authHeader)
+	ctx.JSON(http.StatusOK, review)
+}
+
+func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
+	fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
+
+	authHeader := ctx.GetHeader("Authorization")
+	fmt.Printf("Authorization Header: %s\n", authHeader)
+
+	id := ctx.Param("id")
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		fmt.Println("Invalid ID format")
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
 	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
+		fmt.Println("Error during deletion:", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
 		return
 	}
 
 	if result.DeletedCount == 0 {
+		fmt.Println("Review not found")
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
 		return
 	}
 
+	fmt.Println("Review deleted successfully")
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
 }

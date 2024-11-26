@@ -28,6 +28,7 @@ func RegisterReviewRoutes(router *gin.Engine, rc *controllers.ReviewController) 
 	{
 		adminRoutes.GET("/edit/:id", rc.UpdateReview)
 		adminRoutes.PUT("/edit/:id", rc.EditedReview)
+		adminRoutes.GET("/delete/:id", rc.DeleteReviewConfirmation)
 		adminRoutes.DELETE("/delete/:id", rc.DeleteReview)
 	}
 }

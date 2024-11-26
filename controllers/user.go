@@ -69,68 +69,18 @@ func (uc *UserController) GetLoginForm(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Login form", "user": nil})
 }
 
-// func (uc *UserController) LoginUser(ctx *gin.Context) {
-// 	var loginRequest struct {
-// 		Email    string `json:"email" binding:"required"`
-// 		Password string `json:"password" binding:"required"`
-// 	}
-
-// 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
-// 		return
-// 	}
-
-// 	var user models.User
-// 	err := uc.userCollection.FindOne(ctx, bson.M{"email": loginRequest.Email}).Decode(&user)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-// 		return
-// 	}
-
-// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password))
-// 	if err != nil {
-// 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-// 		return
-// 	}
-
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-// 		"sub": user.ID.Hex(),
-// 		"exp": time.Now().Add(time.Hour * 24).Unix(),
-// 	})
-
-// 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
-// 		return
-// 	}
-
-// 	ctx.SetSameSite(http.SameSiteLaxMode)
-
-// 	ctx.SetCookie(
-// 		"token",     // Name of the token cookie
-// 		tokenString, // Token string
-// 		3600*24,     // Expiration time (1 day)
-// 		"/",         // Path
-// 		"localhost", // Domain
-// 		false,       // Secure
-// 		false,       // HTTP only
-// 	)
-
-// 	ctx.JSON(http.StatusOK, gin.H{
-// 		"message": "Login successful",
-// 		"user":    gin.H{"email": user.Email, "name": user.Username}})
-// }
-
 type Claims struct {
-	UserID  string `json:"sub"`
-	IsAdmin bool   `json:"isAdmin"`
+	UserID   string `json:"sub"`
+	Username string `json:"username"`
+	IsAdmin  bool   `json:"isAdmin"`
 	jwt.StandardClaims
 }
 
 func generateToken(user models.User) (string, error) {
 	claims := Claims{
-		UserID:  user.ID.Hex(),
-		IsAdmin: user.IsAdmin,
+		UserID:   user.ID.Hex(),
+		Username: user.Username,
+		IsAdmin:  user.IsAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 		},
@@ -184,9 +134,9 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user": gin.H{
-			"email":   user.Email,
-			"name":    user.Username,
-			"isAdmin": user.IsAdmin,
+			"email":    user.Email,
+			"username": user.Username,
+			"isAdmin":  user.IsAdmin,
 		},
 	})
 }

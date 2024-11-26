@@ -13,6 +13,7 @@ func CORSMiddleware() gin.HandlerFunc {
 			"http://localhost:3000",
 			"http://localhost:8080",
 		},
+		// AllowAllOrigins: true,
 		AllowMethods: []string{
 			"GET",
 			"POST",

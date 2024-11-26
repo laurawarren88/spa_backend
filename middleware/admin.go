@@ -1,38 +1,27 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// func RequireAdmin() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		user, exists := c.Get("user")
-// 		if !exists {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		if !user.(models.User).IsAdmin {
-// 			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		c.Next()
-// 	}
-// }
-
 func RequireAdmin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.Next() // Let preflight requests pass
+			return
+		}
+
 		isAdmin, exists := ctx.Get("isAdmin")
 		if !exists || !isAdmin.(bool) {
+			fmt.Println("Admin access denied")
 			ctx.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
 			ctx.Abort()
 			return
 		}
+		fmt.Println("Admin access granted")
 		ctx.Next()
 	}
 }

@@ -23,6 +23,7 @@ func RegisterBookRoutes(router *gin.Engine, bc *controllers.BookController) {
 		adminRoutes.GET("/new", bc.NewBook)
 		adminRoutes.GET("/edit/:id", bc.UpdateBook)
 		adminRoutes.PUT("/edit/:id", bc.EditedBook)
+		adminRoutes.GET("/delete/:id", bc.DeleteBookConfirmation)
 		adminRoutes.DELETE("/delete/:id", bc.DeleteBook)
 	}
 }

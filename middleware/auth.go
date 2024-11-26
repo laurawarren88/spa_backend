@@ -16,8 +16,12 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString, err := ctx.Cookie("token")
 		if err != nil || tokenString == "" {
+			fmt.Println("No token found in cookies")
 			tokenString = strings.TrimPrefix(ctx.GetHeader("Authorization"), "Bearer ")
 		}
+		authHeader := ctx.GetHeader("Authorization")
+		fmt.Printf("Token from cookie: %s\n", tokenString)
+		fmt.Printf("Authorization Header: %s\n", authHeader)
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -24,6 +24,16 @@ func NewHomeController(bookCollection, userCollection *mongo.Collection) *HomeCo
 }
 
 func (hc *HomeController) GetHome(ctx *gin.Context) {
+	userID, exists := ctx.Get("userID")
+	var username string
+	if exists {
+		var user models.User
+		err := hc.userCollection.FindOne(context.TODO(), bson.M{"_id": userID}).Decode(&user)
+		if err == nil {
+			username = user.Username
+		}
+	}
+
 	query := ctx.Query("q")
 	filter := bson.M{
 		"$or": []bson.M{
@@ -37,13 +47,15 @@ func (hc *HomeController) GetHome(ctx *gin.Context) {
 		return
 	}
 	defer cursor.Close(context.TODO())
+
 	var books []models.Book
 	if err := cursor.All(context.TODO(), &books); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode books"})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"books": books,
+		"books":    books,
+		"username": username,
 	})
 }
 
@@ -71,5 +83,6 @@ func (hc *HomeController) GetProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"username": user.Username,
 		"email":    user.Email,
+		"isAdmin":  user.IsAdmin,
 	})
 }

@@ -18,11 +18,15 @@ import (
 )
 
 type BookController struct {
-	bookCollection *mongo.Collection
+	bookCollection   *mongo.Collection
+	reviewCollection *mongo.Collection
 }
 
-func NewBookController(collection *mongo.Collection) *BookController {
-	return &BookController{bookCollection: collection}
+func NewBookController(reviewCollection, bookCollection *mongo.Collection) *BookController {
+	return &BookController{
+		bookCollection:   bookCollection,
+		reviewCollection: reviewCollection,
+	}
 }
 
 func (bc *BookController) GetBooks(ctx *gin.Context) {
@@ -195,6 +199,22 @@ func (bc *BookController) EditedBook(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Book updated successfully"})
 }
 
+func (bc *BookController) DeleteBookConfirmation(ctx *gin.Context) {
+	fmt.Printf("Received DELETE confirmation request for ID: %s\n", ctx.Param("id"))
+	id := ctx.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+	var book models.Book
+	if err := bc.bookCollection.FindOne(context.TODO(), bson.M{"_id": objectId}).Decode(&book); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Book deleted successfully"})
+}
+
 func (bc *BookController) DeleteBook(ctx *gin.Context) {
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
@@ -205,6 +225,12 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 	}
 
 	log.Printf("Received ID: %s", id)
+
+	_, err = bc.reviewCollection.DeleteMany(context.TODO(), bson.M{"book._id": objectId})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete associated reviews"})
+		return
+	}
 
 	result, err := bc.bookCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
@@ -218,7 +244,7 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Book deleted successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Book and associated reviews deleted successfully"})
 }
 
 func (bc *BookController) SearchBooks(ctx *gin.Context) {
