@@ -14,8 +14,8 @@ func RegisterUserRoutes(router *gin.Engine, uc *controllers.UserController) {
 		userRoutes.POST("/register", uc.SignupUser)
 		userRoutes.GET("/login", uc.GetLoginForm)
 		userRoutes.POST("/login", uc.LoginUser)
-		userRoutes.GET("/reset-password", uc.ForgotPassword)
-		userRoutes.POST("/reset-password", uc.ResetPassword)
+		userRoutes.GET("/forgot_password", uc.ForgotPassword)
+		userRoutes.POST("/forgot_password", uc.ResetPassword)
 	}
 
 	protected := router.Group("/api/users")
