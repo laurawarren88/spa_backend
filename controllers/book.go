@@ -22,7 +22,7 @@ type BookController struct {
 	reviewCollection *mongo.Collection
 }
 
-func NewBookController(reviewCollection, bookCollection *mongo.Collection) *BookController {
+func NewBookController(bookCollection, reviewCollection *mongo.Collection) *BookController {
 	return &BookController{
 		bookCollection:   bookCollection,
 		reviewCollection: reviewCollection,
@@ -132,6 +132,7 @@ func (bc *BookController) CreateBook(ctx *gin.Context) {
 		return
 	}
 
+	log.Printf("Inserting book into collection: %s", bc.bookCollection.Name())
 	ctx.JSON(http.StatusCreated, gin.H{"book": book})
 }
 
