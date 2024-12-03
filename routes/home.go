@@ -19,6 +19,6 @@ func RegisterHomeRoute(router *gin.Engine, hc *controllers.HomeController) {
 	{
 		// ** Debugging to check if route hit **
 		// protected.GET("/profile", func(ctx *gin.Context) {fmt.Println("Profile route hit") hc.GetProfile(ctx)})
-		protected.GET("/profile", hc.GetProfile)
+		protected.GET("/profile/:userId", hc.GetProfile)
 	}
 }

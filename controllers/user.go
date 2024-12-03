@@ -62,7 +62,15 @@ func (uc *UserController) SignupUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+	ctx.JSON(http.StatusCreated, gin.H{
+		"message": "User created successfully",
+		"user": gin.H{
+			"_id":      user.ID.Hex(),
+			"email":    user.Email,
+			"username": user.Username,
+			"isAdmin":  user.IsAdmin,
+		},
+	})
 }
 
 func (uc *UserController) GetLoginForm(ctx *gin.Context) {
@@ -134,6 +142,7 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user": gin.H{
+			"_id":      user.ID.Hex(),
 			"email":    user.Email,
 			"username": user.Username,
 			"isAdmin":  user.IsAdmin,

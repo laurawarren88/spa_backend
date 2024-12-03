@@ -81,6 +81,7 @@ func (hc *HomeController) GetProfile(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
+		"_id":      user.ID.Hex(),
 		"username": user.Username,
 		"email":    user.Email,
 		"isAdmin":  user.IsAdmin,

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"spa_media_review/models"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,7 @@ func (rc *ReviewController) NewReview(ctx *gin.Context) {
 func (rc *ReviewController) CreateReview(ctx *gin.Context) {
 	var input struct {
 		BookID string `json:"book_id" binding:"required"`
-		Review string `json:"review" binding:"required"`
+		Review string `json:"review"`
 		Rating int    `json:"rating" binding:"required,min=1,max=5"`
 	}
 
@@ -228,7 +229,15 @@ func (rc *ReviewController) EditedReview(ctx *gin.Context) {
 	)
 
 	if result.Err() != nil {
+		log.Printf("Update failed for review ID %s: %v", id, result.Err())
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "review not found"})
+		return
+	}
+
+	updatedReview := models.Review{}
+	if err := result.Decode(&updatedReview); err != nil {
+		log.Printf("Failed to decode updated review: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update review"})
 		return
 	}
 
@@ -251,6 +260,12 @@ func (rc *ReviewController) DeleteReviewConfirmation(ctx *gin.Context) {
 	}
 
 	authHeader := ctx.GetHeader("Authorization")
+
+	if authHeader == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+		return
+	}
+
 	fmt.Printf("Authorization Header: %s\n", authHeader)
 	ctx.JSON(http.StatusOK, review)
 }
@@ -259,6 +274,13 @@ func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
 	fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
 
 	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or missing Authorization header"})
+		return
+	}
+
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	fmt.Printf("Token: %s\n", token)
 	fmt.Printf("Authorization Header: %s\n", authHeader)
 
 	id := ctx.Param("id")
@@ -269,6 +291,8 @@ func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 		return
 	}
+
+	fmt.Printf("Attempting to delete review with ID: %s\n", id)
 
 	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
@@ -283,6 +307,9 @@ func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("Delete result: %+v\n", result)
+	fmt.Printf("Error: %v\n", err)
 	fmt.Println("Review deleted successfully")
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
+	ctx.JSON(http.StatusNoContent, nil)
 }
