@@ -179,6 +179,7 @@ func (bc *BookController) EditedBook(ctx *gin.Context) {
 			"author":      updateBook.Author,
 			"category":    updateBook.Category,
 			"description": updateBook.Description,
+			"image":       updateBook.Image,
 			"updated_at":  time.Now(),
 		},
 	}
