@@ -245,13 +245,20 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 }
 
 func (bc *BookController) SearchBooks(ctx *gin.Context) {
-	query := ctx.Query("q")
-	filter := bson.M{
-		"$or": []bson.M{
-			{"title": bson.M{"$regex": query, "$options": "i"}},
-			{"author": bson.M{"$regex": query, "$options": "i"}},
-			{"category": bson.M{"$regex": query, "$options": "i"}},
-		},
+	title := ctx.Query("title")
+	author := ctx.Query("author")
+	category := ctx.Query("category")
+
+	filter := bson.M{}
+
+	if title != "" {
+		filter["title"] = bson.M{"$regex": title, "$options": "i"}
+	}
+	if author != "" {
+		filter["author"] = bson.M{"$regex": author, "$options": "i"}
+	}
+	if category != "" {
+		filter["category"] = bson.M{"$regex": category, "$options": "i"}
 	}
 
 	cursor, err := bc.bookCollection.Find(context.TODO(), filter)
