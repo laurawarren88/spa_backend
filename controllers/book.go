@@ -73,7 +73,6 @@ func (bc *BookController) GetBookByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, book)
 }
 
@@ -149,7 +148,6 @@ func (bc *BookController) UpdateBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, book)
 }
 
@@ -196,7 +194,6 @@ func (bc *BookController) EditedBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"message": "Book updated successfully"})
 }
 
@@ -244,7 +241,6 @@ func (bc *BookController) DeleteBook(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
 		return
 	}
-
 	ctx.JSON(http.StatusOK, gin.H{"message": "Book and associated reviews deleted successfully"})
 }
 

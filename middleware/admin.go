@@ -10,7 +10,7 @@ import (
 func RequireAdmin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if ctx.Request.Method == "OPTIONS" {
-			ctx.Next() // Let preflight requests pass
+			ctx.Next()
 			return
 		}
 

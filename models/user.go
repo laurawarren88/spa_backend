@@ -76,6 +76,5 @@ func (u *User) Validate(ctx context.Context, db *mongo.Collection) map[string]st
 			errors["password"] = "Password must contain at least one lowercase letter, one uppercase letter, and one number"
 		}
 	}
-
 	return errors
 }

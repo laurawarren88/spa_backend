@@ -60,9 +60,9 @@ func (rc *ReviewController) GetReviews(ctx *gin.Context) {
 		var user models.User
 		err := rc.userCollection.FindOne(context.TODO(), bson.M{"_id": review.UserID}).Decode(&user)
 		if err == nil {
-			reviews[i].Username = user.Username // Assuming "UserName" is the field to store the username in Review
+			reviews[i].Username = user.Username
 		} else {
-			reviews[i].Username = "Unknown User" // Fallback in case user is not found
+			reviews[i].Username = "Unknown User"
 		}
 	}
 
@@ -72,7 +72,6 @@ func (rc *ReviewController) GetReviews(ctx *gin.Context) {
 func (rc *ReviewController) NewReview(ctx *gin.Context) {
 	bookID := ctx.Param("bookId")
 
-	// Fetch the book
 	objID, err := primitive.ObjectIDFromHex(bookID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid book ID"})
@@ -85,7 +84,6 @@ func (rc *ReviewController) NewReview(ctx *gin.Context) {
 		return
 	}
 
-	// Fetch the user (for authenticated user)
 	userID, exists := ctx.Get("userID")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -100,7 +98,6 @@ func (rc *ReviewController) NewReview(ctx *gin.Context) {
 		return
 	}
 
-	// Respond with both book and user data
 	ctx.JSON(http.StatusOK, gin.H{
 		"book": book,
 		"user": gin.H{
@@ -146,7 +143,6 @@ func (rc *ReviewController) CreateReview(ctx *gin.Context) {
 		return
 	}
 
-	// Fetch user details
 	var user models.User
 	if err := rc.userCollection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&user); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -336,63 +332,11 @@ func (rc *ReviewController) DeleteReviewConfirmation(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
 		return
 	}
-
-	// authHeader := ctx.GetHeader("Authorization")
-
-	// if authHeader == "" {
-	// 	ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
-	// 	return
-	// }
-
-	// fmt.Printf("Authorization Header: %s\n", authHeader)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
 }
 
-// func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
-// 	fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
-
-// 	// authHeader := ctx.GetHeader("Authorization")
-// 	// if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-// 	// 	ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or missing Authorization header"})
-// 	// 	return
-// 	// }
-
-// 	// token := strings.TrimPrefix(authHeader, "Bearer ")
-// 	// fmt.Printf("Token received: %s\n", token)
-
-// 	id := ctx.Param("id")
-
-// 	objectId, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		fmt.Println("Invalid ID format")
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-// 		return
-// 	}
-
-// 	fmt.Printf("Attempting to delete review with ID: %s\n", id)
-
-// 	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
-// 	if err != nil {
-// 		fmt.Println("Error during deletion:", err)
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
-// 		return
-// 	}
-
-// 	if result.DeletedCount == 0 {
-// 		fmt.Println("Review not found")
-// 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
-// 		return
-// 	}
-
-// 	fmt.Printf("Delete result: %+v\n", result)
-// 	fmt.Printf("Error: %v\n", err)
-// 	fmt.Println("Review deleted successfully")
-// 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
-// 	// ctx.JSON(http.StatusNoContent, nil)
-// }
-
 func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
-	// Get review ID from URL parameter
+	fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -401,37 +345,24 @@ func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Printf("Attempting to delete review with ID: %s\n", id)
 	log.Printf("Received ID: %s", id)
 
-	// Retrieve user ID from context (set by AuthMiddleware)
-	// userID, _ := ctx.Get("userID")
-
-	// Fetch the review from the database
-	// var review models.Review
-	// if err := rc.reviewCollection.FindOne(context.TODO(), bson.M{"_id": objectId}).Decode(&review); err != nil {
-	// 	ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
-	// 	return
-	// }
-
-	// Ensure the review belongs to the authenticated user (or is admin)
-	// if review.UserID != userID && !ctx.MustGet("isAdmin").(bool) {
-	// 	ctx.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to delete this review"})
-	// 	return
-	// }
-
-	// Perform the deletion
 	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
+		fmt.Println("Error during deletion:", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
 		return
 	}
 
 	log.Printf("Delete result: %+v", result)
 	if result.DeletedCount == 0 {
+		fmt.Println("Review not found")
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
 		return
 	}
 
-	// Respond with success
+	fmt.Printf("Delete result: %+v\n", result)
+	fmt.Printf("Error: %v\n", err)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
 }
