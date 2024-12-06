@@ -6,10 +6,14 @@ import (
 
 type Review struct {
 	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Review    string             `json:"review" bson:"review" binding:"required"`
+	UserID    primitive.ObjectID `bson:"user_id" json:"user_id"`
+	Username  string             `json:"username" bson:"username"`
+	Review    string             `json:"review" bson:"review"`
 	Rating    int                `json:"rating" bson:"rating" binding:"required,min=1,max=5"`
-	CreatedAt primitive.DateTime `bson:"createdAt" json:"createdAt"`
+	CreatedAt primitive.DateTime `bson:"created_at" json:"created_at"`
+	UpdatedAt primitive.DateTime `bson:"updated_at" json:"updated_at"`
 	Book      Book               `json:"book" bson:"book"`
+	User      User               `json:"user" bson:"user"`
 }
 
 func (r *Review) Validate() map[string]string {

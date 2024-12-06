@@ -191,6 +191,7 @@ func (uc *UserController) ResetPassword(ctx *gin.Context) {
 func (uc *UserController) LogoutUser(ctx *gin.Context) {
 	log.Println("LogoutUser endpoint hit")
 
+	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
 		"token",     // Name of the token cookie
 		"",          // Empty the value
