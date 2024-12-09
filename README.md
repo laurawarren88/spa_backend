@@ -20,6 +20,7 @@ In order to run this application you will need to have the following:
 ```text
 🔸 MongoDB account
 🔸 VS code installed
+🔸 Golang installed
 ```
 
 ## 🐾 Step One
