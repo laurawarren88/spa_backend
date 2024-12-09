@@ -61,11 +61,13 @@ vim .env
 In the file you need to include your information ℹ️ into the following variables:
 
 ```text
-PORT=<port number>
+PORT=8080
 MONGODB_URI=<your mongodb uri>
 SECRET_KEY=<your secret key>
 ADMIN_PASSWORD=<your admin password>
 ```
+
+For the port number you can use any port you like but if you are running this with the frontend you will need to change the port number in the frontend file as well.
 
 After the '=' sign for DATABASE_URL input the connection for your MongoDB, it will look something like this:
 
@@ -73,7 +75,7 @@ After the '=' sign for DATABASE_URL input the connection for your MongoDB, it wi
 mongodb+srv://<username>:<password>@cluster0.ib6l0.mongodb.net/<cluster_name>?retryWrites=true&w=majority&appName=Cluster0
 ```
 
-For the secret, port and admin_password variable input anything you like.
+For the secret, and admin_password variable input anything you like.
 
 ## 🐾 Step Four
 
