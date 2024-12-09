@@ -128,15 +128,31 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
+	env := os.Getenv("ENV")
+
+	var domain string
+	var secure bool
+	var httpOnly bool
+
+	if env == "development" {
+		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
+		secure = false
+		httpOnly = false
+	} else {
+		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
+		secure = true
+		httpOnly = true
+	}
+
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
 		"token",
 		tokenString,
 		3600*24,
 		"/",
-		"localhost",
-		false,
-		false,
+		domain,
+		secure,
+		httpOnly,
 	)
 
 	ctx.JSON(http.StatusOK, gin.H{
@@ -164,14 +180,24 @@ func (uc *UserController) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
+	env := os.Getenv("ENV")
+
+	var domain string
+
+	if env == "development" {
+		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
+	} else {
+		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
+	}
+
 	ctx.SetCookie(
-		"token",     // Name of the token cookie
-		"",          // Empty the value
-		-1,          // Expires immediately
-		"/",         // path
-		"localhost", // Domain
-		false,       // Secure
-		false,       // HTTP only
+		"token", // Name of the token cookie
+		"",      // Empty the value
+		-1,      // Expires immediately
+		"/",     // path
+		domain,  // Domain
+		false,   // Secure
+		false,   // HTTP only
 	)
 
 	result := uc.userCollection.FindOneAndUpdate(
@@ -191,15 +217,25 @@ func (uc *UserController) ResetPassword(ctx *gin.Context) {
 func (uc *UserController) LogoutUser(ctx *gin.Context) {
 	log.Println("LogoutUser endpoint hit")
 
+	env := os.Getenv("ENV")
+
+	var domain string
+
+	if env == "development" {
+		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
+	} else {
+		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
+	}
+
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
-		"token",     // Name of the token cookie
-		"",          // Empty the value
-		-1,          // Expires immediately
-		"/",         // path
-		"localhost", // Domain
-		false,       // HTTPS only
-		false,       // HTTP only
+		"token", // Name of the token cookie
+		"",      // Empty the value
+		-1,      // Expires immediately
+		"/",     // path
+		domain,  // Domain
+		false,   // HTTPS only
+		false,   // HTTP only
 	)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out"})
 }

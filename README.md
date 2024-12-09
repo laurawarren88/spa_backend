@@ -61,13 +61,19 @@ vim .env
 In the file you need to include your information ℹ️ into the following variables:
 
 ```text
+ENV=development
+DEV_ALLOWED_ORIGIN=http://localhost:<port number>
+PROD_ALLOWED_ORIGIN=http://<domain>:<port number>
+
 PORT=8080
 MONGODB_URI=<your mongodb uri>
 SECRET_KEY=<your secret key>
 ADMIN_PASSWORD=<your admin password>
 ```
 
-For the port number you can use any port you like but if you are running this with the frontend you will need to change the port number in the frontend file as well.
+For the ENV variable you can use development or production. This will determine which port the server will run on, you can set these in the next variables. These are your frontend ports for either development or production. You can use the same port number for both. What ever you use for the port number will be the port number you will need to use in the frontend.
+
+For the port number you can use any port you like but if you are running this with the frontend you will need to change the port number in the frontend file as well - /utils/config.js.
 
 After the '=' sign for DATABASE_URL input the connection for your MongoDB, it will look something like this:
 

@@ -29,8 +29,8 @@ func main() {
 
 	config.SetupHandlers(router, database.BookCollection, database.ReviewCollection, database.UserCollection)
 
-	fmt.Printf("Starting the server\n")
-	if err := router.Run(":8080"); err != nil {
+	fmt.Printf("Starting the server on port %s\n", config.GetEnv("PORT", "8000"))
+	if err := router.Run(":" + config.GetEnv("PORT", "8000")); err != nil {
 		log.Fatal("Failed to start the server:", err)
 	}
 }

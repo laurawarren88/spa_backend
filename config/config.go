@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 	"spa_media_review/controllers"
 	"spa_media_review/middleware"
 	"spa_media_review/routes"
@@ -19,6 +20,14 @@ func LoadEnv() {
 
 func SetGinMode() {
 	gin.SetMode(gin.ReleaseMode)
+}
+
+func GetEnv(key string, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	return value
 }
 
 func SetupServer() *gin.Engine {
