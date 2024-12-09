@@ -21,6 +21,7 @@ In order to run this application you will need to have the following:
 🔸 MongoDB account
 🔸 VS code installed
 🔸 Golang installed
+🔸 air-verse/air live loader installed
 ```
 
 ## 🐾 Step One
