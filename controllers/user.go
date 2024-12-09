@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"spa_media_review/middleware"
 	"spa_media_review/models"
 	"time"
 
@@ -128,7 +129,7 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	domain, secure, httpOnly, err := getCookieSettings()
+	domain, secure, httpOnly, err := middleware.GetCookieSettings()
 	if err != nil {
 		log.Fatalf("Failed to parse environment variables: %v", err)
 	}

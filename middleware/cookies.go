@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func getCookieSettings() (string, bool, bool, error) {
+func GetCookieSettings() (string, bool, bool, error) {
 	env := os.Getenv("ENV")
 
 	var domain string
