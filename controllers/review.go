@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"spa_media_review/models"
@@ -319,7 +318,7 @@ func (rc *ReviewController) EditedReview(ctx *gin.Context) {
 }
 
 func (rc *ReviewController) DeleteReviewConfirmation(ctx *gin.Context) {
-	fmt.Printf("Received DELETE confirmation request for ID: %s\n", ctx.Param("id"))
+	// fmt.Printf("Received DELETE confirmation request for ID: %s\n", ctx.Param("id"))
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -336,33 +335,33 @@ func (rc *ReviewController) DeleteReviewConfirmation(ctx *gin.Context) {
 }
 
 func (rc *ReviewController) DeleteReview(ctx *gin.Context) {
-	fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
+	// fmt.Printf("Received DELETE request for ID: %s\n", ctx.Param("id"))
 	id := ctx.Param("id")
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Printf("Invalid ID format: %v", err)
+		// log.Printf("Invalid ID format: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 		return
 	}
 
-	fmt.Printf("Attempting to delete review with ID: %s\n", id)
-	log.Printf("Received ID: %s", id)
+	// fmt.Printf("Attempting to delete review with ID: %s\n", id)
+	// log.Printf("Received ID: %s", id)
 
 	result, err := rc.reviewCollection.DeleteOne(context.TODO(), bson.M{"_id": objectId})
 	if err != nil {
-		fmt.Println("Error during deletion:", err)
+		// fmt.Println("Error during deletion:", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete review"})
 		return
 	}
 
 	log.Printf("Delete result: %+v", result)
 	if result.DeletedCount == 0 {
-		fmt.Println("Review not found")
+		// fmt.Println("Review not found")
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
 		return
 	}
 
-	fmt.Printf("Delete result: %+v\n", result)
-	fmt.Printf("Error: %v\n", err)
+	// fmt.Printf("Delete result: %+v\n", result)
+	// fmt.Printf("Error: %v\n", err)
 	ctx.JSON(http.StatusOK, gin.H{"message": "Review deleted successfully"})
 }
