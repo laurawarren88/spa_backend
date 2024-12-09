@@ -128,20 +128,9 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	env := os.Getenv("ENV")
-
-	var domain string
-	var secure bool
-	var httpOnly bool
-
-	if env == "development" {
-		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
-		secure = false
-		httpOnly = false
-	} else {
-		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
-		secure = true
-		httpOnly = true
+	domain, secure, httpOnly, err := getCookieSettings()
+	if err != nil {
+		log.Fatalf("Failed to parse environment variables: %v", err)
 	}
 
 	ctx.SetSameSite(http.SameSiteLaxMode)
