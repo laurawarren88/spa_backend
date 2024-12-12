@@ -42,7 +42,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte(os.Getenv("SECRET_KEY")), nil
+			return []byte(os.Getenv("ACCESS_SECRET_KEY")), nil
 		})
 
 		if err != nil {
@@ -58,7 +58,7 @@ func AuthMiddleware() gin.HandlerFunc {
 					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 					}
-					return []byte(os.Getenv("SECRET_KEY")), nil
+					return []byte(os.Getenv("REFRESH_SECRET_KEY")), nil
 				})
 				if err != nil {
 					ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
