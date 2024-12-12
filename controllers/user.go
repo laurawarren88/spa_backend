@@ -6,9 +6,9 @@ import (
 	"os"
 	"spa_media_review/middleware"
 	"spa_media_review/models"
+	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -78,27 +78,6 @@ func (uc *UserController) GetLoginForm(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Login form", "user": nil})
 }
 
-type Claims struct {
-	UserID   string `json:"sub"`
-	Username string `json:"username"`
-	IsAdmin  bool   `json:"isAdmin"`
-	jwt.StandardClaims
-}
-
-func generateToken(user models.User) (string, error) {
-	claims := Claims{
-		UserID:   user.ID.Hex(),
-		Username: user.Username,
-		IsAdmin:  user.IsAdmin,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(os.Getenv("SECRET_KEY")))
-}
-
 func (uc *UserController) LoginUser(ctx *gin.Context) {
 	var loginRequest struct {
 		Email    string `json:"email" binding:"required"`
@@ -123,9 +102,15 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	tokenString, err := generateToken(user)
+	accessToken, err := middleware.GenerateToken(user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		return
+	}
+
+	refreshToken, err := middleware.GenerateRefreshToken(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate refresh token"})
 		return
 	}
 
@@ -136,8 +121,19 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
-		"token",
-		tokenString,
+		"access_token",
+		accessToken,
+		3600*24,
+		"/",
+		domain,
+		secure,
+		httpOnly,
+	)
+
+	ctx.SetSameSite(http.SameSiteLaxMode)
+	ctx.SetCookie(
+		"refresh_token",
+		refreshToken,
 		3600*24,
 		"/",
 		domain,
@@ -173,21 +169,32 @@ func (uc *UserController) ResetPassword(ctx *gin.Context) {
 	env := os.Getenv("ENV")
 
 	var domain string
-
 	if env == "development" {
-		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
+		domain = strings.Split(os.Getenv("DEV_ALLOWED_ORIGIN"), "//")[1]
 	} else {
-		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
+		domain = strings.Split(os.Getenv("PROD_ALLOWED_ORIGIN"), "//")[1]
 	}
 
+	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
-		"token", // Name of the token cookie
-		"",      // Empty the value
-		-1,      // Expires immediately
-		"/",     // path
-		domain,  // Domain
-		false,   // Secure
-		false,   // HTTP only
+		"access_token",
+		"",
+		-1,
+		"/",
+		domain,
+		false,
+		false,
+	)
+
+	ctx.SetSameSite(http.SameSiteLaxMode)
+	ctx.SetCookie(
+		"refresh_token",
+		"",
+		-1,
+		"/",
+		domain,
+		false,
+		false,
 	)
 
 	result := uc.userCollection.FindOneAndUpdate(
@@ -210,22 +217,33 @@ func (uc *UserController) LogoutUser(ctx *gin.Context) {
 	env := os.Getenv("ENV")
 
 	var domain string
-
 	if env == "development" {
-		domain = os.Getenv("DEV_ALLOWED_ORIGIN")
+		domain = strings.Split(os.Getenv("DEV_ALLOWED_ORIGIN"), "//")[1]
 	} else {
-		domain = os.Getenv("PROD_ALLOWED_ORIGIN")
+		domain = strings.Split(os.Getenv("PROD_ALLOWED_ORIGIN"), "//")[1]
 	}
 
 	ctx.SetSameSite(http.SameSiteLaxMode)
 	ctx.SetCookie(
-		"token", // Name of the token cookie
-		"",      // Empty the value
-		-1,      // Expires immediately
-		"/",     // path
-		domain,  // Domain
-		false,   // HTTPS only
-		false,   // HTTP only
+		"access_token",
+		"",
+		-1,
+		"/",
+		domain,
+		false,
+		false,
 	)
+
+	ctx.SetSameSite(http.SameSiteLaxMode)
+	ctx.SetCookie(
+		"refresh_token",
+		"",
+		-1,
+		"/",
+		domain,
+		false,
+		false,
+	)
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "Logged out"})
 }
